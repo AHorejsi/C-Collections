@@ -52,17 +52,15 @@ void reserve(vec_t*, const size_t);
 
 void shrink_to_fit(vec_t*);
 
-void push_back_copy(vec_t*, const void*);
+//void push_back_copy(vec_t*, const void*);
 
-void push_back_move(vec_t*, void*);
+//void push_back_move(vec_t*, void*);
 
-void insert_copy(vec_t*, const size_t, const void*);
+//void insert_copy(vec_t*, const size_t, const void*);
 
-void insert_move(vec_t*, const size_t, void*);
+//void insert_move(vec_t*, const size_t, void*);
 
-//void resize(vec_t*, const size_t);
-
-//void resize_copy(vec_t*, const size_t*, const void*);
+//void resize(vec_t*, const size_t*, const void*);
 
 //void pop_back(vec_t*);
 

@@ -61,7 +61,7 @@ void destroy(array_t* this) {
 }
 
 bool is_same_type(const array_t* this, const array_t* other) {
-    return this->meta == other->meta || return 0 == strcmp(this->meta->containedType, other->meta->containedType);
+    return this->meta == other->meta || 0 == strcmp(this->meta->containedType, other->meta->containedType);
 }
 
 bool empty(const array_t* this) {
@@ -244,10 +244,9 @@ size_t count_if(const array_t* this, const predicate_t pred) {
     char* ptr = (char*)(this->data);
     char* end = ptr + (this->length * itemSize);
     size_t amount = 0;
-    equality_t equality = this->meta->equals;
 
     while (ptr < end) {
-        if (equality(ptr)) {
+        if (pred(ptr)) {
             ++amount;
         }
 
@@ -266,7 +265,7 @@ void swap(array_t* this, array_t* other) {
     this->length = other->length;
     other->length = tempLength;
 
-    meta_t tempMeta = this->meta;
+    meta_t* tempMeta = this->meta;
     this->meta = other->meta;
     other->meta = tempMeta;
 }
@@ -321,19 +320,19 @@ bool none(const array_t* this, const predicate_t pred) {
 }
 
 ptrdiff_t binary_search(const array_t* this, const void* item, const comparator_t comp) {
-    size_t lowIndex = 0;
-    size_t highIndex = this->length - 1;
+    ptrdiff_t lowIndex = 0;
+    ptrdiff_t highIndex = this->length - 1;
 
-    while (lowIndex < highIndex) {
-        size_t midIndex = (lowIndex + highIndex) / 2;
+    while (lowIndex <= highIndex) {
+        ptrdiff_t midIndex = (lowIndex + highIndex) / 2;
         const void* elem = get_const(this, midIndex);
-        int8_t comp = comp(item, elem);
+        int8_t comparison = comp(item, elem);
 
-        if (comp < 0) {
-            highIndex = midIndex - 1;
-        }
-        else if (comp > 0) {
+        if (comparison < 0) {
             lowIndex = midIndex + 1;
+        }
+        else if (comparison > 0) {
+            highIndex = midIndex - 1;
         }
         else {
             return midIndex;
@@ -341,6 +340,178 @@ ptrdiff_t binary_search(const array_t* this, const void* item, const comparator_
     }
 
     return -1;
+}
+
+static ptrdiff_t binary_search_bound(const array_t* this, const void* item, const comparator_t comp, bool isLower) {
+    ptrdiff_t lowIndex = 0;
+    ptrdiff_t highIndex = this->length - 1;
+
+
+    while (lowIndex <= highIndex) {
+        ptrdiff_t midIndex = (lowIndex + highIndex) / 2;
+        const void* elem = get_const(this, midIndex);
+
+        int8_t comparison = comp(elem, item);
+
+        if (comp < 0) {
+            lowIndex = midIndex + 1;
+        }
+        else if (comp > 0) {
+            highIndex = midIndex - 1;
+        }
+        else {
+            if (isLower) {
+                const void* prev = get_const(this, midIndex - 1);
+
+                if (midIndex == lowIndex || 0 != comp(prev, item)) {
+                    return midIndex;
+                }
+                else {
+                    highIndex = midIndex - 1;
+                }
+            }
+            else {
+                const void* next = get_const(this, midIndex + 1);
+
+                if (midIndex == highIndex || 0 != comp(next, item)) {
+                    return midIndex;
+                }
+                else {
+                    lowIndex = midIndex + 1;
+                }
+            }
+        }
+    }
+}
+
+ptrdiff_t lower_bound(const array_t* this, const void* item, const comparator_t comp) {
+    return binary_search_bound(this, item, comp, true);
+}
+
+ptrdiff_t upper_bound(const array_t* this, const void* item, const comparator_t comp) {
+    return binary_search_bound(this, item, comp, false);
+}
+
+static char* median_of_three(char* lowPtr, char* highPtr, const size_t itemSize, const comparator_t comp, void* swapBuffer) {
+    size_t count = (highPtr - lowPtr) / itemSize + 1;
+    size_t midIndex = count / 2;
+    char* midPtr = lowPtr + (midIndex * itemSize);
+
+    if (comp(highPtr, lowPtr) < 0) {
+        ptr_swap(highPtr, lowPtr, swapBuffer, itemSize);
+    }
+    if (comp(midPtr, lowPtr) < 0) {
+        ptr_swap(highPtr, lowPtr, swapBuffer, itemSize);
+    }
+    if (comp(highPtr, midPtr) < 0) {
+        ptr_swap(highPtr, midPtr, swapBuffer, itemSize);
+    }
+
+    return midPtr;
+}
+
+static char* quick_sort_partition(char* lowPtr, char* highPtr, const size_t itemSize, const comparator_t comp, void* swapBuffer) {
+    char* pivot = median_of_three(lowPtr, highPtr, itemSize, comp, swapBuffer);
+
+    ptr_swap(pivot, lowPtr, swapBuffer, itemSize);
+
+    lowPtr -= itemSize;
+    highPtr += itemSize;
+
+    while (true) {
+        do {
+            lowPtr += itemSize;
+        } while (comp(lowPtr, pivot) < 0);
+
+        do {
+            highPtr -= itemSize;
+        } while (comp(highPtr, pivot) > 0);
+
+        if (lowPtr >= highPtr) {
+            return highPtr;
+        }
+
+        ptr_swap(lowPtr, highPtr, swapBuffer, itemSize);
+    }
+}
+
+static void quick_sort(char* lowPtr, char* highPtr, const size_t itemSize, const comparator_t comp, void* swapBuffer) {
+    if (lowPtr < highPtr) {
+        char* partitionPoint = quick_sort_partition(lowPtr, highPtr, itemSize, comp, swapBuffer);
+
+        quick_sort(lowPtr, partitionPoint - itemSize, itemSize, comp, swapBuffer);
+        quick_sort(partitionPoint + itemSize, highPtr, itemSize, comp, swapBuffer);
+    }
+}
+
+void sort(array_t* this, const comparator_t comp) {
+    size_t itemSize = this->meta->itemSize;
+    char* lowPtr = (char*)(this->data);
+    char* highPtr = lowPtr + (this->length * itemSize);
+    void* swapBuffer = this->meta->allocate(itemSize);
+
+    quick_sort(lowPtr, highPtr - itemSize, itemSize, comp, swapBuffer);
+
+    this->meta->deallocate(swapBuffer);
+}
+
+static range_t make_subarray(char* lowPtr, char* highPtr, const allocator_t alloc) {
+    size_t subSize = highPtr - lowPtr;
+    char* subArray = (char*)alloc(subSize);
+    
+    memcpy(subArray, lowPtr, subSize);
+
+    return (range_t){ subArray, subArray + subSize };
+}
+
+static void merge(char* lowPtr, char* midPtr, char* highPtr, const size_t itemSize, const comparator_t comp, const allocator_t alloc, const deallocator_t dealloc) {
+    range_t left = make_subarray(lowPtr, midPtr, alloc);
+    range_t right = make_subarray(midPtr, highPtr, alloc);
+
+    char* leftPtr = left.low;
+    char* rightPtr = right.low;
+    char* ptr = lowPtr;
+
+    while (leftPtr != left.high && rightPtr != right.high) {
+        if (comp(leftPtr, rightPtr) <= 0) {
+            memcpy(ptr, leftPtr, itemSize);
+
+            leftPtr += itemSize;
+        }
+        else {
+            memcpy(ptr, rightPtr, itemSize);
+
+            rightPtr += itemSize;
+        }
+
+        ptr += itemSize;
+    }
+
+    dealloc(left.low);
+    dealloc(right.low);
+}
+
+static void merge_sort(char* lowPtr, char* highPtr, const size_t itemSize, const comparator_t comp, const allocator_t alloc, const deallocator_t dealloc) {
+    size_t size = highPtr - lowPtr;
+    size_t count = size / itemSize;
+
+    if (count > 1) {
+        size_t midIndex = size / 2 / itemSize;
+        char* midPtr = lowPtr + (midIndex * itemSize);
+
+        merge_sort(lowPtr, midPtr, itemSize, comp, alloc, dealloc);
+        merge_sort(midPtr, highPtr, itemSize, comp, alloc, dealloc);
+
+        merge(lowPtr, midPtr, highPtr, itemSize, comp, alloc, dealloc);
+    }
+}
+
+void stable_sort(array_t* this, const comparator_t comp) {
+    size_t itemSize = this->meta->itemSize;
+    char* lowPtr = (char*)(this->data);
+    char* highPtr = lowPtr + (this->length * itemSize);
+
+    merge_sort(lowPtr, highPtr, itemSize, comp, this->meta->allocate, this->meta->deallocate);
 }
 
 bool sorted(const array_t* this, const comparator_t comp) {
@@ -421,6 +592,44 @@ const void* random_const(const array_t* this, const randomizer_t random) {
     return get_const(this, random() % this->length);
 }
 
+static size_t find_not(array_t* this, const predicate_t pred) {
+    for (size_t index = 0; index < this->length; ++index) {
+        const void* elem = get_const(this, index);
+
+        if (!pred(elem)) {
+            return index;
+        }
+    }
+
+    return this->length;
+}
+
+size_t partition(array_t* this, const predicate_t pred) {
+    size_t startIndex = find_not(this, pred);
+
+    if (this->length == startIndex) {
+        return startIndex;
+    }
+    else {
+        size_t itemSize = this->meta->itemSize;
+        void* buffer = this->meta->allocate(itemSize);
+
+        for (size_t index = startIndex + 1; index < this->length; ++index) {
+            void* elem1 = get(this, index);
+
+            if (pred(elem1)) {
+                void* elem2 = get(this, startIndex);
+
+                ptr_swap(elem1, elem2, buffer, itemSize);
+
+                ++startIndex;
+            }
+        }
+
+        this->meta->deallocate(buffer);
+    }
+}
+
 void reverse(array_t* this) {
     size_t itemSize = this->meta->itemSize;
     char* low = (char*)(this->data);
@@ -499,7 +708,7 @@ bool equals(const array_t* this, const array_t* other) {
         }
 
         thisPtr += itemSize;
-        otherPtr += itemSize
+        otherPtr += itemSize;
     }
 
     return true;

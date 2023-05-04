@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include "arrayTest.h"
 
 int main() {
-    printf("TEST\n");
+    run_array_tests();
 
     return 0;
 }

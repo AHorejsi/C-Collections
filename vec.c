@@ -157,17 +157,3 @@ void shrink_to_fit(vec_t* this) {
         reallocate_array(this, this->count);
     }
 }
-
-void push_back_copy(vec_t* this, const void* item) {
-    insert_copy(this, this->length, item);
-}
-
-void push_back_move(vec_t* this, void* item) {
-    insert_move(this, this->length, item);
-}
-
-void insert_copy(vec_t* this, const size_t index, const void* item) {
-    
-}
-
-void insert_move(vec_t*, const size_t, void*);

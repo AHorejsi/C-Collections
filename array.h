@@ -77,13 +77,13 @@ bool none(const array_t*, const predicate_t);
 
 ptrdiff_t binary_search(const array_t*, const void*, const comparator_t);
 
-//ptrdiff_t lower_bound(const array_t*, const void*, const comparator_t);
+ptrdiff_t lower_bound(const array_t*, const void*, const comparator_t);
 
-//ptrdiff_t upper_bound(const array_t*, const void*, const comparator_t);
+ptrdiff_t upper_bound(const array_t*, const void*, const comparator_t);
 
-//void sort(array_t*, const comparator_t);
+void sort(array_t*, const comparator_t);
 
-//void stable_sort(array_t*, const comparator_t);
+void stable_sort(array_t*, const comparator_t);
 
 bool sorted(const array_t*, const comparator_t);
 
@@ -101,15 +101,13 @@ void* random(array_t*, const randomizer_t);
 
 const void* random_const(const array_t*, const randomizer_t);
 
-//void partition(array_t*, const predicate_t);
+size_t partition(array_t*, const predicate_t);
 
-//void stable_partition(array_t*, const predicate_t);
+//size_t stable_partition(array_t*, const predicate_t);
 
 void reverse(array_t*);
 
 void shuffle(array_t*, const randomizer_t);
-
-//void rotate(array_t*, const size_t);
 
 void replace(array_t*, const void*, const void*);
 

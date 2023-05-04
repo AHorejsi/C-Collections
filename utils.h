@@ -29,6 +29,11 @@ typedef struct {
     deallocator_t deallocate;
 } meta_t;
 
+typedef struct {
+    char* low;
+    char* high;
+} range_t;
+
 void ptr_swap(void*, void*, void*, const size_t);
 
 
