@@ -13,12 +13,13 @@ typedef void*(*allocator_t)(size_t);
 typedef void(*deallocator_t)(void*);
 typedef bool(*predicate_t)(const void*);
 typedef bool(*binary_predicate_t)(const void*, const void*);
-typedef int(*comparator_t)(const void*, const void*);
+typedef ptrdiff_t(*comparator_t)(const void*, const void*);
 typedef void(*action_t)(void*);
+typedef size_t(*randomizer_t)(void);
 
 typedef struct {
     size_t itemSize;
-    string_t containedType;
+    string_t typeName;
     copier_t copy;
     mover_t move;
     binary_predicate_t equals;
@@ -26,6 +27,13 @@ typedef struct {
     allocator_t allocate;
     deallocator_t deallocate;
 } meta_t;
+
+typedef enum {
+    UNDEFINED,
+    LESS,
+    EQUAL,
+    GREATER
+} comparison_t;
 
 typedef struct {
     char* low;
