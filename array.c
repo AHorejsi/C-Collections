@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include <string.h>
-#include "utils.h"
 #include "array.h"
 
 static void copy_elements(array_t* this, const array_t* other) {
@@ -85,22 +83,7 @@ void array_set_move(array_t* this, const size_t index, void* new) {
 }
 
 ptrdiff_t array_find(const array_t* this, const size_t fromIndex, const void* item) {
-    size_t itemSize = this->meta->itemSize;
-    char* ptr = (char*)(this->data) + (fromIndex * itemSize);
-    char* end = (char*)(this->data) + (this->length * itemSize);
-    ptrdiff_t index = fromIndex;
-    binary_predicate_t equality = this->meta->equals;
-
-    while (ptr < end) {
-        if (equality(ptr, item)) {
-            return index;
-        }
-
-        ++index;
-        ptr += itemSize;
-    }
-
-    return -1;
+    return array_look(this, fromIndex, item, this->meta->equals);
 }
 
 ptrdiff_t array_find_if(const array_t* this, const size_t fromIndex, const predicate_t pred) {
@@ -302,12 +285,11 @@ static ptrdiff_t array_binary_search_bound(const array_t* this, const void* item
     ptrdiff_t lowIndex = 0;
     ptrdiff_t highIndex = this->length - 1;
 
-
     while (lowIndex <= highIndex) {
         ptrdiff_t midIndex = (lowIndex + highIndex) / 2;
         const void* elem = array_get_const(this, midIndex);
 
-        int8_t comparison = comp(elem, item);
+        ptrdiff_t comparison = comp(elem, item);
 
         if (comp < 0) {
             lowIndex = midIndex + 1;
@@ -598,7 +580,7 @@ void array_shuffle(array_t* this, const randomizer_t random) {
     size_t itemSize = this->meta->itemSize;
     void* buffer = this->meta->allocate(itemSize);
 
-    for (size_t index = 1; index < this->length; ++index) {
+    for (size_t index = 2; index < this->length; ++index) {
         void* ptr = array_get(this, index);
         void* randPtr = array_get(this, random() % index);
 
@@ -640,7 +622,7 @@ void array_replace_if(array_t* this, const void* new, const predicate_t pred) {
 }
 
 bool array_equals(const array_t* this, const array_t* other) {
-    if (this->length != other->length) {
+    if (this->length != other->length || this->meta != other->meta) {
         return false;
     }
 
@@ -660,4 +642,32 @@ bool array_equals(const array_t* this, const array_t* other) {
     }
 
     return true;
+}
+
+comparison_t array_compare(const array_t* this, const array_t* other, const comparator_t comp) {
+    if (this->meta != other->meta) {
+        return UNDEFINED;
+    }
+
+    size_t itemSize = this->meta->itemSize;
+    char* thisPtr = (char*)(this->data);
+    char* thisEnd = thisPtr + (this->length * itemSize);
+    char* otherPtr = (char*)(this->data);
+    char* otherEnd = otherPtr + (this->length * itemSize);
+
+    while (thisPtr != thisEnd && otherPtr != otherEnd) {
+        ptrdiff_t compare = comp(thisPtr, otherPtr);
+
+        if (compare < 0) {
+            return LESS;
+        }
+        else if (compare > 0) {
+            return GREATER;
+        }
+
+        thisPtr += itemSize;
+        otherPtr += itemSize;
+    }
+
+    return EQUAL;
 }

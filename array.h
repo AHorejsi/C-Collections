@@ -76,8 +76,6 @@ void array_for_each(array_t*, const action_t);
 
 size_t array_partition(array_t*, const predicate_t);
 
-//size_t array_stable_partition(array_t*, const predicate_t);
-
 void array_reverse(array_t*);
 
 void array_shuffle(array_t*, const randomizer_t);
@@ -88,7 +86,7 @@ void array_replace_if(array_t*, const void*, const predicate_t);
 
 bool array_equals(const array_t*, const array_t*);
 
-//int array_compare(const array_t*, const array_t*, const comparator_t);
+comparison_t array_compare(const array_t*, const array_t*, const comparator_t);
 
 
 #endif
