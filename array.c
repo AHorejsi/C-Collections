@@ -59,7 +59,7 @@ void array_destroy(array_t* this) {
 }
 
 bool array_same_type(const array_t* this, const array_t* other) {
-    return this->meta == other->meta || 0 == strcmp(this->meta->containedType, other->meta->containedType);
+    return this->meta == other->meta || 0 == strcmp(this->meta->typeName, other->meta->typeName);
 }
 
 void* array_get(array_t* this, const size_t index) {
@@ -265,7 +265,7 @@ ptrdiff_t array_binary_search(const array_t* this, const void* item, const compa
     while (lowIndex <= highIndex) {
         ptrdiff_t midIndex = (lowIndex + highIndex) / 2;
         const void* elem = array_get_const(this, midIndex);
-        int8_t comparison = comp(item, elem);
+        ptrdiff_t comparison = comp(item, elem);
 
         if (comparison < 0) {
             lowIndex = midIndex + 1;
