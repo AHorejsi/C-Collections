@@ -234,7 +234,7 @@ void vec_clear(vec_t* this) {
     this->data = this->meta->allocate(DEFAULT_CAPACITY * this->meta->itemSize);
 }
 
-void trim(vec_t* this) {
+void vec_trim(vec_t* this) {
     if (this->count == this->capacity) {
         return;
     }

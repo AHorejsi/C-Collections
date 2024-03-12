@@ -57,7 +57,7 @@ size_t vec_erase_amount_of(vec_t*, const void*, const size_t);
 
 void vec_clear(vec_t*);
 
-void trim(vec_t*);
+void vec_trim(vec_t*);
 
 ptrdiff_t vec_find(const vec_t*, const size_t, const void*);
 
