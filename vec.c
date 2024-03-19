@@ -21,6 +21,8 @@ static void copy_elements(vec_t* this, const vec_t* other) {
 }
 
 void vec_copy(vec_t* this, const vec_t* other) {
+    vec_destroy(other);
+
     this->data = other->meta->allocate(other->capacity * other->meta->itemSize);
     this->count = other->count;
     this->capacity = other->capacity;
