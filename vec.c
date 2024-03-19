@@ -1,5 +1,4 @@
 #include <string.h>
-#include <stdlib.h>
 #include "vec.h"
 
 bool vec_empty(const vec_t* this) {
@@ -107,7 +106,7 @@ static void resize_if_needed(vec_t* this) {
         size_t newCapacity = this->capacity * 3 / 2;
 
         this->capacity = newCapacity;
-        this->data = realloc(this->data, newCapacity * this->meta->itemSize);
+        this->data = this->meta->allocate(newCapacity * this->meta->itemSize);
     }
 }
 
@@ -154,7 +153,7 @@ void vec_erase(vec_t* this, const size_t index) {
     vec_erase_range(this, index, index + 1);
 }
 
-static void shift_elements_from_erasure(vec_t* this, const size_t fromIndex, const size_t toIndex) {
+static void shift_elements_for_erasure(vec_t* this, const size_t fromIndex, const size_t toIndex) {
     size_t itemSize = this->meta->itemSize;
     char* frontPtr = (char*)(this->data) + (itemSize * fromIndex);
     char* backPtr = (char*)(this->data) + (itemSize * toIndex);
@@ -208,6 +207,7 @@ bool vec_erase_first_of(vec_t* this, const void* item) {
 size_t vec_erase_amount_of(vec_t* this, const void* item, const size_t targetAmount) {
     size_t amountRemoved = 0;
     size_t count = this->count;
+    binary_predicate_t equality = this->meta->equals;
     
     for (size_t index = 0; index < count; ++index) {
         const void* ptr = vec_get_const(this, index);
