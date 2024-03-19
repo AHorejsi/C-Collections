@@ -17,7 +17,7 @@ static void copy_elements(array_t* this, const array_t* other) {
 }
 
 void array_copy(array_t* this, const array_t* other) {
-    array_destroy
+    array_destroy(this);
 
     this->data = other->meta->allocate(other->length * other->meta->itemSize);
     this->length = other->length;

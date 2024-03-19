@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "utils.h"
 
-#define DEFAULT_CAPACITY 16
+#define VEC_DEFAULT_CAPACITY 16
 
 typedef struct {
     void* data;

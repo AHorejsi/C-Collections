@@ -21,7 +21,7 @@ static void copy_elements(vec_t* this, const vec_t* other) {
 }
 
 void vec_copy(vec_t* this, const vec_t* other) {
-    vec_destroy(other);
+    vec_destroy(this);
 
     this->data = other->meta->allocate(other->capacity * other->meta->itemSize);
     this->count = other->count;
@@ -229,11 +229,12 @@ size_t vec_erase_amount_of(vec_t* this, const void* item, const size_t targetAmo
 }
 
 void vec_clear(vec_t* this) {
-    destroy_elements(this, 0, this->count - 1);
+    destroy_elements(this, 0, this->count);
+    this->meta->deallocate(this->data);
 
-    this->capacity = DEFAULT_CAPACITY;
+    this->capacity = VEC_DEFAULT_CAPACITY;
     this->count = 0;
-    this->data = this->meta->allocate(DEFAULT_CAPACITY * this->meta->itemSize);
+    this->data = this->meta->allocate(VEC_DEFAULT_CAPACITY * this->meta->itemSize);
 }
 
 void vec_trim(vec_t* this) {
@@ -255,6 +256,8 @@ void vec_trim(vec_t* this) {
         ptr += itemSize;
         newPtr += itemSize;
     }
+
+    this->meta->deallocate(this->data);
 
     this->data = newData;
     this->count = this->capacity;
