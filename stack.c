@@ -77,7 +77,7 @@ bool stack_same_type(const stack_t* this, const stack_t* other) {
 
 static void resize_if_needed(stack_t* this) {
     if (this->count == this->capacity) {
-        size_t newCapacity = this->capacity * 3 / 2;
+        ptrdiff_t newCapacity = this->capacity * 3 / 2;
 
         this->capacity = newCapacity;
         this->data = this->meta->allocate(newCapacity * this->meta->itemSize);
@@ -162,11 +162,11 @@ void stack_swap(stack_t* this, stack_t* other) {
     this->meta = this->meta;
     other->meta = tempMeta;
 
-    size_t tempCount = this->count;
+    ptrdiff_t tempCount = this->count;
     this->count = other->count;
     other->count = tempCount;
 
-    size_t tempCapacity = this->capacity;
+    ptrdiff_t tempCapacity = this->capacity;
     this->capacity = other->capacity;
     other->capacity = tempCapacity;
 }

@@ -105,7 +105,7 @@ void vec_push_back_move(vec_t* this, void* new) {
 
 static void resize_if_needed(vec_t* this) {
     if (this->count == this->capacity) {
-        size_t newCapacity = this->capacity * 3 / 2;
+        ptrdiff_t newCapacity = this->capacity * 3 / 2;
 
         this->capacity = newCapacity;
         this->data = this->meta->allocate(newCapacity * this->meta->itemSize);

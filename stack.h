@@ -10,8 +10,8 @@
 
 typedef struct {
     void* data;
-    size_t capacity;
-    size_t count;
+    ptrdiff_t capacity;
+    ptrdiff_t count;
     meta_t* meta;
 } stack_t;
 
